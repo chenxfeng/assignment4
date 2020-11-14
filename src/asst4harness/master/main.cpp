@@ -29,14 +29,17 @@ int main(int argc, char** argv) {
   std::string usage("Usage: " + std::string(argv[0]) +
                     " [options] <hostport>\n");
   usage += "  Runs a master node with launcher that is running on host:port.";
-  google::SetUsageMessage(usage);
+  // google::SetUsageMessage(usage);
   google::InitGoogleLogging(argv[0]);
   google::InstallFailureSignalHandler();
+  gflags::SetUsageMessage(usage);
 
-  google::ParseCommandLineFlags(&argc, &argv, true);
+  // google::ParseCommandLineFlags(&argc, &argv, true);
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
   if (argc != 2) {
     fprintf(stderr, "Invalid number of aruments provided\n%s\n",
-            google::ProgramUsage());
+            // google::ProgramUsage());
+             gflags::ProgramUsage());
     exit(EXIT_FAILURE);
   }
 
