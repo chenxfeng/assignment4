@@ -132,11 +132,15 @@ int main(int argc, char** argv) {
   std::string usage("Usage: " + std::string(argv[0]) +
                     " [options] <hostport>\n");
   usage += "  Runs a worker node with master that is running on host:port.";
-  google::SetUsageMessage(usage);
-  google::InitGoogleLogging(argv[0]);
-  google::InstallFailureSignalHandler();
+  // google::SetUsageMessage(usage);
+  // google::InitGoogleLogging(argv[0]);
+  // google::InstallFailureSignalHandler();
+  gflags::SetUsageMessage(usage);
+  gflags::InitGoogleLogging(argv[0]);
+  gflags::InstallFailureSignalHandler();
 
-  google::ParseCommandLineFlags(&argc, &argv, true);
+  // google::ParseCommandLineFlags(&argc, &argv, true);
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
   if (argc < 2) {
     fprintf(stderr, "Insufficient arguments provided\n%s\n",
              google::ProgramUsage());
