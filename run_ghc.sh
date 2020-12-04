@@ -10,15 +10,15 @@ mkdir -p logs
 # Start the launcher and sleep a moment to make sure it is listening.
 ./scripts/nodemanager_local.py $debug_pyflags $launcher_port --log_dir=logs $debug_cflags $configflags &
 nodemanager_pid=$!
-
+printf "launch nodemanager"
 # Start the master and sleep a moment to make sure it is listening.
 ./master --max_workers $1 --address=$(hostname):$master_port --log_dir=logs $debug_cflags $(hostname):$launcher_port &
 master_pid=$!
-
+printf "launch master"
 # Run the test harness (this python script generates all the requests
 # and verifies the correctness of the server's responses)
 ./scripts/workgen.py $debug_pyflags $(hostname):$master_port $2
-
+printf "generate workers"
 success=$?
 
 # Tell the master to die by sending it the tagged message (shutdown, 0).
