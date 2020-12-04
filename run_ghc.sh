@@ -8,11 +8,11 @@ master_port=$((launcher_port + 1))
 mkdir -p logs
 
 # Start the launcher and sleep a moment to make sure it is listening.
-./scripts/nodemanager_local.py $debug_pyflags $launcher_port --log_dir=logs $debug_cflags $configflags &
+./scripts/nodemanager_local.py $debug_pyflags $launcher_port $debug_cflags $configflags &
 nodemanager_pid=$!
 
 # Start the master and sleep a moment to make sure it is listening.
-./master --max_workers $1 --address=$(hostname):$master_port --log_dir=logs $debug_cflags $(hostname):$launcher_port &
+./master --max_workers $1 --address=$(hostname):$master_port $debug_cflags $(hostname):$launcher_port &
 master_pid=$!
 printf "launch nodemanager:$nodemanager_pid and master:$master_pid\n"
 # Run the test harness (this python script generates all the requests

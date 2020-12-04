@@ -20,9 +20,6 @@ void harness_begin_main_loop(struct timeval* tick_period);
 int launcher_fd = -1;
 int accept_fd = -1;
 
-///add for parse ``ERROR: unknown command line flag 'log_dir'``
-DEFINE_string(log_dir, "logs", "directory for logs.");
-
 DEFINE_string(address, "localhost:15418", "What address to listen on.");
 DECLARE_bool(log_network);
 DEFINE_int32(max_workers, 2, "Maximum number of workers the master can request");
