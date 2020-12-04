@@ -42,7 +42,7 @@ int main(int argc, char** argv) { printf("Start server-master!!!\n");
              gflags::ProgramUsage());
     exit(EXIT_FAILURE);
   }
-
+printf("server-master listen: %s\n", FLAGS_address.c_str());
   accept_fd = listen_to(FLAGS_address.c_str());
   CHECK_GE(accept_fd, 0) << "Could not listen on " << FLAGS_address;
   DLOG_IF(INFO, FLAGS_log_network) << "Listening on " << FLAGS_address;
