@@ -5,6 +5,7 @@
 #include "server/messages.h"
 #include "server/master.h"
 
+#include <map>
 
 static struct Master_state {
 
@@ -20,7 +21,7 @@ static struct Master_state {
 
   Worker_handle my_worker;
   ///handle multiple pending client requests
-  map<int, Client_handle> waiting_client;///tag2client
+  std::map<int, Client_handle> waiting_client;///tag2client
 
 } mstate;
 
