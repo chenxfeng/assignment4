@@ -72,7 +72,7 @@ if args.nodefile is not None or len(args.host) > 0:
     hosts = set(args.host)
     
   hosts_lock = threading.Lock()
-
+print "server port: ", args.port
 s = comm.listen_to(args.port)
 
 if args.verbose:
