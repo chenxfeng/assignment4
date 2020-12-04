@@ -46,6 +46,7 @@ static void execute_compareprimes(const Request_msg& req, Response_msg& resp) {
 }
 
 #include <pthread.h>
+#include "tools/work_queue.h"
 
 typedef struct {
   int threadId;
@@ -53,7 +54,7 @@ typedef struct {
 } WorkerArgs;
 
 static struct Worker_state {
-  int max_num_tasks;
+  const int max_num_tasks = 19;///num_of_thread-1
   WorkQueue<const Request_msg> block_queue_tasks;
   pthread_t thread_pool[max_num_tasks];
   WorkerArgs thread_arg[max_num_tasks];
@@ -100,7 +101,6 @@ void worker_node_init(const Request_msg& params) {
   // pthreads here.  Remember, when running on Amazon servers, worker
   // processes will run on an instance with a dual-core CPU.
 
-  wstate.max_num_tasks = 19;//num_of_thread-1
   for (int i = 0; i < wstate.max_num_tasks; i++) {
     wstate.thread_arg[i].threadId = i + 1;
     wstate.thread_arg[i].numThreads = wstate.max_num_tasks;
