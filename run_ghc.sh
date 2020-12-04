@@ -4,8 +4,8 @@
 launcher_port=${3-15418}
 master_port=$((launcher_port + 1))
 
-# make a logs directory
-mkdir -p logs
+# # make a logs directory
+# mkdir -p logs # remove flags --log_dir
 
 # Start the launcher and sleep a moment to make sure it is listening.
 ./scripts/nodemanager_local.py $debug_pyflags $launcher_port $debug_cflags $configflags &
