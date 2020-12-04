@@ -20,11 +20,14 @@ void harness_begin_main_loop(struct timeval* tick_period);
 int launcher_fd = -1;
 int accept_fd = -1;
 
+///add for parse ``ERROR: unknown command line flag 'log_dir'``
+DEFINE_string(log_dir, "logs", "directory for logs.");
+
 DEFINE_string(address, "localhost:15418", "What address to listen on.");
 DECLARE_bool(log_network);
 DEFINE_int32(max_workers, 2, "Maximum number of workers the master can request");
 
-int main(int argc, char** argv) { printf("Start server-master!!!\n");
+int main(int argc, char** argv) {
   int err;
   std::string usage("Usage: " + std::string(argv[0]) +
                     " [options] <hostport>\n");
@@ -42,7 +45,7 @@ int main(int argc, char** argv) { printf("Start server-master!!!\n");
              gflags::ProgramUsage());
     exit(EXIT_FAILURE);
   }
-printf("server-master listen: %s\n", FLAGS_address.c_str());
+
   accept_fd = listen_to(FLAGS_address.c_str());
   CHECK_GE(accept_fd, 0) << "Could not listen on " << FLAGS_address;
   DLOG_IF(INFO, FLAGS_log_network) << "Listening on " << FLAGS_address;
