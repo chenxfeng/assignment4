@@ -24,7 +24,7 @@ DEFINE_string(address, "localhost:15418", "What address to listen on.");
 DECLARE_bool(log_network);
 DEFINE_int32(max_workers, 2, "Maximum number of workers the master can request");
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv) { printf("Start server-master!!!\n");
   int err;
   std::string usage("Usage: " + std::string(argv[0]) +
                     " [options] <hostport>\n");
