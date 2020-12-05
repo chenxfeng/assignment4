@@ -15,7 +15,7 @@ static void create_computeprimes_req(Request_msg& req, const char * n, const cha
   oss << n;
   // req.set_arg("cmd", "countprimes");
   req.set_arg("cmd", "compareprimes");
-  req.set_arg("n", oss.c_str());
+  req.set_arg("n", oss.str());
   req.set_arg("order", order);
 }
 
