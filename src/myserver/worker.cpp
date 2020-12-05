@@ -10,7 +10,7 @@
 #include "tools/cycle_timer.h"
 
 // Generate a valid 'countprimes' request dictionary from integer 'n'
-static void create_computeprimes_req(Request_msg& req, char * n, char * order) {
+static void create_computeprimes_req(Request_msg& req, const char * n, const char * order) {
   std::ostringstream oss;
   oss << n;
   // req.set_arg("cmd", "countprimes");
@@ -19,33 +19,33 @@ static void create_computeprimes_req(Request_msg& req, char * n, char * order) {
   req.set_arg("order", order);
 }
 
-// Implements logic required by compareprimes command via multiple
-// calls to execute_work.  This function fills in the appropriate
-// response.
-static void execute_compareprimes(const Request_msg& req, Response_msg& resp) {
+// // Implements logic required by compareprimes command via multiple
+// // calls to execute_work.  This function fills in the appropriate
+// // response.
+// static void execute_compareprimes(const Request_msg& req, Response_msg& resp) {
 
-    int params[4];
-    int counts[4];
+//     int params[4];
+//     int counts[4];
 
-    // grab the four arguments defining the two ranges
-    params[0] = atoi(req.get_arg("n1").c_str());
-    params[1] = atoi(req.get_arg("n2").c_str());
-    params[2] = atoi(req.get_arg("n3").c_str());
-    params[3] = atoi(req.get_arg("n4").c_str());
+//     // grab the four arguments defining the two ranges
+//     params[0] = atoi(req.get_arg("n1").c_str());
+//     params[1] = atoi(req.get_arg("n2").c_str());
+//     params[2] = atoi(req.get_arg("n3").c_str());
+//     params[3] = atoi(req.get_arg("n4").c_str());
 
-    for (int i=0; i<4; i++) {
-      Request_msg dummy_req(0);
-      Response_msg dummy_resp(0);
-      create_computeprimes_req(dummy_req, params[i]);
-      execute_work(dummy_req, dummy_resp);
-      counts[i] = atoi(dummy_resp.get_response().c_str());
-    }
+//     for (int i=0; i<4; i++) {
+//       Request_msg dummy_req(0);
+//       Response_msg dummy_resp(0);
+//       create_computeprimes_req(dummy_req, params[i]);
+//       execute_work(dummy_req, dummy_resp);
+//       counts[i] = atoi(dummy_resp.get_response().c_str());
+//     }
 
-    if (counts[1]-counts[0] > counts[3]-counts[2])
-      resp.set_response("There are more primes in first range.");
-    else
-      resp.set_response("There are more primes in second range.");
-}
+//     if (counts[1]-counts[0] > counts[3]-counts[2])
+//       resp.set_response("There are more primes in first range.");
+//     else
+//       resp.set_response("There are more primes in second range.");
+// }
 
 #include <pthread.h>
 #include "tools/work_queue.h"
