@@ -90,6 +90,7 @@ void* request_handle(void* thread_arg) {
       counts[order] = atoi(dummy_resp.get_response().c_str());
       if (order == 0) {
         while (counts[1] == -1 || counts[2] == -1 || counts[3] == -1) continue;
+
         if (counts[1]-counts[0] > counts[3]-counts[2])
           resp.set_response("There are more primes in first range.");
         else
@@ -97,7 +98,7 @@ void* request_handle(void* thread_arg) {
         counts[1] = -1;
         counts[2] = -1;
         counts[3] = -1;
-      }
+      } else return NULL;
     } else {
       // actually perform the work.  The response string is filled in by
       // 'execute_work'
