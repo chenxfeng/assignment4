@@ -63,7 +63,7 @@ static struct Worker_state {
 void* request_handle(void* thread_arg) {
 
   WorkerArgs* args = static_cast<WorkerArgs*>(thread_arg);
-  const Request_msg req;
+  Request_msg req;
 
   while (true) {
     ///try to get a req from the block-queue; block untill it's not empty
