@@ -54,8 +54,8 @@ typedef struct {
 } WorkerArgs;
 
 static struct Worker_state {
-  const int max_num_tasks = 19;///num_of_thread-1
-  WorkQueue<const Request_msg> block_queue_tasks;
+  const static int max_num_tasks = 19;///num_of_thread-1
+  WorkQueue<Request_msg> block_queue_tasks;
   pthread_t thread_pool[max_num_tasks];
   WorkerArgs thread_arg[max_num_tasks];
 } wstate;
