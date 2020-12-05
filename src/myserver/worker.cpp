@@ -10,11 +10,13 @@
 #include "tools/cycle_timer.h"
 
 // Generate a valid 'countprimes' request dictionary from integer 'n'
-static void create_computeprimes_req(Request_msg& req, int n) {
+static void create_computeprimes_req(Request_msg& req, char * n, char * order) {
   std::ostringstream oss;
   oss << n;
-  req.set_arg("cmd", "countprimes");
-  req.set_arg("n", oss.str());
+  // req.set_arg("cmd", "countprimes");
+  req.set_arg("cmd", "compareprimes");
+  req.set_arg("n", n);
+  req.set_arg("order", order);
 }
 
 // Implements logic required by compareprimes command via multiple
@@ -60,6 +62,8 @@ static struct Worker_state {
   WorkerArgs thread_arg[max_num_tasks];
 } wstate;
 
+static int counts[4] = {-1};
+
 void* request_handle(void* thread_arg) {
 
   WorkerArgs* args = static_cast<WorkerArgs*>(thread_arg);
@@ -79,7 +83,21 @@ void* request_handle(void* thread_arg) {
       // built on four calls to execute_execute work.  All other
       // requests from the client are one-to-one with calls to
       // execute_work.
-      execute_compareprimes(req, resp);
+      int order = atoi(req.get_arg("order").c_str()) - 1;
+      req.set_arg("cmd", "countprimes");
+      Response_msg dummy_resp(0);
+      execute_work(req, dummy_resp);
+      counts[order] = atoi(dummy_resp.get_response().c_str());
+      if (order == 0) {
+        while (counts[1] == -1 || counts[2] == -1 || counts[3] != -1) continue;
+        if (counts[1]-counts[0] > counts[3]-counts[2])
+          resp.set_response("There are more primes in first range.");
+        else
+          resp.set_response("There are more primes in second range.");
+        counts[1] == -1;
+        counts[2] == -1;
+        counts[3] == -1;
+      }
     } else {
       // actually perform the work.  The response string is filled in by
       // 'execute_work'
@@ -120,7 +138,22 @@ void worker_handle_request(const Request_msg& req) {
   // configuration, this would be in the log logs/worker.INFO)
   DLOG(INFO) << "Worker got request: [" << req.get_tag() << ":" << req.get_request_string() << "]\n";
 
-  ///add the request to block-queue and it would be handled by other threads
-  wstate.block_queue_tasks.put_work(req);
+  if (req.get_arg("cmd") == "compareprimes") {
+    ///divide to four independent task
+    int params;
+    Request_msg dummy_req(0);
+    // grab the four arguments defining the two ranges
+    create_computeprimes_req(dummy_req, req.get_arg("n1").c_str(), "1");
+    wstate.block_queue_tasks.put_work(dummy_req);
+    create_computeprimes_req(dummy_req, req.get_arg("n2").c_str(), "2");
+    wstate.block_queue_tasks.put_work(dummy_req);
+    create_computeprimes_req(dummy_req, req.get_arg("n3").c_str(), "3");
+    wstate.block_queue_tasks.put_work(dummy_req);
+    create_computeprimes_req(dummy_req, req.get_arg("n4").c_str(), "4");
+    wstate.block_queue_tasks.put_work(dummy_req);
+  } else {
+    ///add the request to block-queue and it would be handled by other threads
+    wstate.block_queue_tasks.put_work(req);
+  }
 
 }
