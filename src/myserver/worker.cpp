@@ -94,9 +94,9 @@ void* request_handle(void* thread_arg) {
           resp.set_response("There are more primes in first range.");
         else
           resp.set_response("There are more primes in second range.");
-        counts[1] == -1;
-        counts[2] == -1;
-        counts[3] == -1;
+        counts[1] = -1;
+        counts[2] = -1;
+        counts[3] = -1;
       }
     } else {
       // actually perform the work.  The response string is filled in by
@@ -140,7 +140,6 @@ void worker_handle_request(const Request_msg& req) {
 
   if (req.get_arg("cmd") == "compareprimes") {
     ///divide to four independent task
-    int params;
     Request_msg dummy_req(0);
     // grab the four arguments defining the two ranges
     create_computeprimes_req(dummy_req, req.get_arg("n1").c_str(), "1");
