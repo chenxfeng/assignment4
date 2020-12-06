@@ -50,6 +50,7 @@ static struct Worker_state {
   bool projectidea;
   pthread_mutex_t work_lock;
   pthread_cond_t work_cond;
+  WorkQueue<Request_msg> projectidea_tasks;
 } wstate;
 
 
@@ -61,7 +62,11 @@ void* request_handle(void* thread_arg) {
   while (true) {
     ///try to get a req from the block-queue; block untill it's not empty
     ///and measures are taken for threads-safety
-    req = wstate.block_queue_tasks.get_work();
+    if (wstate.projectidea) {
+      req = wstate.block_queue_tasks.get_work();
+    } else {
+      req = wstate.projectidea_tasks.get_work();
+    }
     // Make the tag of the reponse match the tag of the request.  This
     // is a way for your master to match worker responses to requests.
     Response_msg resp(req.get_tag());
@@ -94,18 +99,22 @@ void* request_handle(void* thread_arg) {
       }
     } else if (req.get_arg("cmd").compare("projectidea") == 0) {
       // ///only one projectidea in the same time
+      if (wstate.projectidea) {
+        wstate.projectidea_tasks.put_work(req);
+        continue;
+      }
       // while (wstate.projectidea) {
       //   pthread_mutex_lock(&wstate.work_lock);
       //   pthread_cond_wait(&wstate.work_cond, &wstate.work_lock);
       //   pthread_mutex_unlock(&wstate.work_lock);
       // }
       // ///lock the worker for monopolize all L3-cache
-      // pthread_mutex_lock(&wstate.work_lock);
-      // wstate.projectidea = true;
+      pthread_mutex_lock(&wstate.work_lock);
+      wstate.projectidea = true;
       execute_work(req, resp);
-      // wstate.projectidea = false;
+      wstate.projectidea = false;
       // pthread_cond_signal(&wstate.work_cond);///pthread_cond_broadcast(&wstate.work_cond);
-      // pthread_mutex_unlock(&wstate.work_lock);
+      pthread_mutex_unlock(&wstate.work_lock);
       args->isResp = true;
     } else {
       // actually perform the work. The response string is filled in by 'execute_work'
