@@ -100,15 +100,15 @@ void* request_handle(void* thread_arg) {
         args->isResp = false;
       }
     } else if (req.get_arg("cmd").compare("projectidea") == 0) {
-      ///lock the worker for monopolize all L3-cache
-      pthread_mutex_lock(&wstate.work_lock);
-      wstate.projectidea = true;
+      // ///lock the worker for monopolize all L3-cache
+      // pthread_mutex_lock(&wstate.work_lock);
+      // wstate.projectidea = true;
       execute_work(req, resp);
-      wstate.projectidea = false;
-      // pthread_cond_signal(&wstate.work_cond);
-      pthread_cond_broadcast(&wstate.work_cond);
-      pthread_mutex_unlock(&wstate.work_lock);
-      args->isResp = true;
+      // wstate.projectidea = false;
+      // // pthread_cond_signal(&wstate.work_cond);
+      // pthread_cond_broadcast(&wstate.work_cond);
+      // pthread_mutex_unlock(&wstate.work_lock);
+      // args->isResp = true;
     } else {
       // actually perform the work. The response string is filled in by 'execute_work'
       execute_work(req, resp);
