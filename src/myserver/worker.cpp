@@ -49,6 +49,7 @@ static struct Worker_state {
   std::map<int, fours> primes;
   ///lock for dominant cache : projectidea
   int projectidea;
+  const static int max_projectidea = 2;
   pthread_mutex_t work_lock;
   pthread_cond_t work_cond;
   std::queue<Request_msg> projectidea_tasks;
@@ -63,7 +64,7 @@ void* request_handle(void* thread_arg) {
   while (true) {
     ///try to get a req from the block-queue; block untill it's not empty
     ///and measures are taken for threads-safety
-    if (wstate.projectidea < 2 && wstate.projectidea_tasks.size()) {
+    if (wstate.projectidea < wstate.max_projectidea && wstate.projectidea_tasks.size()) {
       req = wstate.projectidea_tasks.front();
       wstate.projectidea_tasks.pop();
     } else {
@@ -101,7 +102,7 @@ void* request_handle(void* thread_arg) {
       }
     } else if (req.get_arg("cmd").compare("projectidea") == 0) {
       ///only one projectidea in the same time
-      if (wstate.projectidea < 2) {
+      if (wstate.projectidea >= wstate.max_projectidea) {
         wstate.projectidea_tasks.push(req);
         continue;
       }
