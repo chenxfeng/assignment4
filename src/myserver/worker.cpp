@@ -48,7 +48,7 @@ static struct Worker_state {
   ///tag2compareprimes
   std::map<int, fours> primes;
   ///lock for dominant cache : projectidea
-  bool projectidea;
+  int projectidea;
   pthread_mutex_t work_lock;
   pthread_cond_t work_cond;
   std::queue<Request_msg> projectidea_tasks;
@@ -63,7 +63,7 @@ void* request_handle(void* thread_arg) {
   while (true) {
     ///try to get a req from the block-queue; block untill it's not empty
     ///and measures are taken for threads-safety
-    if (!wstate.projectidea && wstate.projectidea_tasks.size()) {
+    if (wstate.projectidea < 2 && wstate.projectidea_tasks.size()) {
       req = wstate.projectidea_tasks.front();
       wstate.projectidea_tasks.pop();
     } else {
@@ -101,7 +101,7 @@ void* request_handle(void* thread_arg) {
       }
     } else if (req.get_arg("cmd").compare("projectidea") == 0) {
       ///only one projectidea in the same time
-      if (wstate.projectidea) {
+      if (wstate.projectidea < 2) {
         wstate.projectidea_tasks.push(req);
         continue;
       }
@@ -112,9 +112,9 @@ void* request_handle(void* thread_arg) {
       // }
       // ///lock the worker for monopolize all L3-cache
       // pthread_mutex_lock(&wstate.work_lock);
-      wstate.projectidea = true;
+      wstate.projectidea++;
       execute_work(req, resp);
-      wstate.projectidea = false;
+      wstate.projectidea--;
       // pthread_cond_signal(&wstate.work_cond);///pthread_cond_broadcast(&wstate.work_cond);
       // pthread_mutex_unlock(&wstate.work_lock);
       args->isResp = true;
@@ -147,7 +147,7 @@ void worker_node_init(const Request_msg& params) {
     pthread_create(&wstate.thread_pool[i], NULL, request_handle, &wstate.thread_arg[i]);
   }
 
-  wstate.projectidea = false;
+  wstate.projectidea = 0;
   pthread_cond_init(&wstate.work_cond, NULL);
   pthread_mutex_init(&wstate.work_lock, NULL);
 
