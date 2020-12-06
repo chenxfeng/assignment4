@@ -108,7 +108,7 @@ void* request_handle(void* thread_arg) {
       // // pthread_cond_signal(&wstate.work_cond);
       // pthread_cond_broadcast(&wstate.work_cond);
       // pthread_mutex_unlock(&wstate.work_lock);
-      // args->isResp = true;
+      args->isResp = true;
     } else {
       // actually perform the work. The response string is filled in by 'execute_work'
       execute_work(req, resp);
