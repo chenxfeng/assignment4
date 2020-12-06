@@ -51,6 +51,7 @@ static void create_computeprimes_req(Request_msg& req, const char * n, const cha
 #include "tools/work_queue.h"
 
 typedef struct {
+  bool isResp;
   int threadId;
   int numThreads;
 } WorkerArgs;
@@ -98,18 +99,23 @@ void* request_handle(void* thread_arg) {
         counts[1] = -1;
         counts[2] = -1;
         counts[3] = -1;
-      } else 
-        return NULL;
+        args->isResp = true;
+      } else {
+        args->isResp = false;
+      }
     } else {
       // actually perform the work.  The response string is filled in by
       // 'execute_work'
       execute_work(req, resp);
+      args->isResp = true;
     }
 
     double dt = CycleTimer::currentSeconds() - startTime;
     DLOG(INFO) << "Worker completed work in " << (1000.f * dt) << " ms (" << req.get_tag()  << ")\n";
-    // send a response string to the master
-    worker_send_response(resp);
+    if (args->isResp) {
+      // send a response string to the master
+      worker_send_response(resp);
+    }
   }
   return NULL;
 }
