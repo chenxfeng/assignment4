@@ -40,10 +40,16 @@ struct fours {
 
 static struct Worker_state {
   const static int max_num_tasks = 39;///num_of_thread-1
+  ///multi-threads
   WorkQueue<Request_msg> block_queue_tasks;
   pthread_t thread_pool[max_num_tasks];
   WorkerArgs thread_arg[max_num_tasks];
-  std::map<int, fours> primes;///tag2compareprimes
+  ///tag2compareprimes
+  std::map<int, fours> primes;
+  ///lock for dominant cache : projectidea
+  bool projectidea;
+  pthread_mutex_t work_lock;
+  pthread_cond_t work_cond;
 } wstate;
 
 
@@ -59,6 +65,12 @@ void* request_handle(void* thread_arg) {
     // Make the tag of the reponse match the tag of the request.  This
     // is a way for your master to match worker responses to requests.
     Response_msg resp(req.get_tag());
+
+    if (wstate.projectidea) {
+      pthread_mutex_lock(&wstate.work_lock);
+      pthread_cond_wait(&wstate.work_cond, &wstate.work_lock);
+      pthread_mutex_unlock(&wstate.work_lock);
+    }
 
     double startTime = CycleTimer::currentSeconds();
     if (req.get_arg("cmd").compare("compareprimes") == 0) {
@@ -86,6 +98,15 @@ void* request_handle(void* thread_arg) {
       } else {
         args->isResp = false;
       }
+    } else if (req.get_arg("cmd").compare("projectidea") == 0) {
+      ///lock the worker for monopolize all L3-cache
+      pthread_mutex_lock(&wstate.work_lock);
+      wstate.projectidea = true;
+      execute_work(req, resp);
+      wstate.projectidea = false;
+      pthread_mutex_unlock(&wstate.work_lock);
+      pthread_cond_signal(&wstate.work_cond);
+      args->isResp = true;
     } else {
       // actually perform the work. The response string is filled in by 'execute_work'
       execute_work(req, resp);
@@ -114,6 +135,10 @@ void worker_node_init(const Request_msg& params) {
     wstate.thread_arg[i].numThreads = wstate.max_num_tasks;
     pthread_create(&wstate.thread_pool[i], NULL, request_handle, &wstate.thread_arg[i]);
   }
+
+  wstate.projectidea = false;
+  pthread_cond_init(&wstate.work_cond, NULL);
+  pthread_mutex_init(&wstate.work_lock, NULL);
 
   DLOG(INFO) << "**** Initializing worker: " << params.get_arg("name") << " ****\n";
 
