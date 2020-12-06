@@ -105,7 +105,8 @@ void* request_handle(void* thread_arg) {
       wstate.projectidea = true;
       execute_work(req, resp);
       wstate.projectidea = false;
-      pthread_cond_signal(&wstate.work_cond);///pthread_cond_broadcast(&wstate.work_cond);
+      // pthread_cond_signal(&wstate.work_cond);
+      pthread_cond_broadcast(&wstate.work_cond);
       pthread_mutex_unlock(&wstate.work_lock);
       args->isResp = true;
     } else {
