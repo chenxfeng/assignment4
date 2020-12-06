@@ -66,10 +66,11 @@ void* request_handle(void* thread_arg) {
     // is a way for your master to match worker responses to requests.
     Response_msg resp(req.get_tag());
 
-    if (wstate.projectidea) {
+    while (wstate.projectidea) {
       pthread_mutex_lock(&wstate.work_lock);
       pthread_cond_wait(&wstate.work_cond, &wstate.work_lock);
       pthread_mutex_unlock(&wstate.work_lock);
+      pthread_cond_signal(&wstate.work_cond);
     }
 
     double startTime = CycleTimer::currentSeconds();
@@ -104,8 +105,8 @@ void* request_handle(void* thread_arg) {
       wstate.projectidea = true;
       execute_work(req, resp);
       wstate.projectidea = false;
+      pthread_cond_signal(&wstate.work_cond);///pthread_cond_broadcast(&wstate.work_cond);
       pthread_mutex_unlock(&wstate.work_lock);
-      pthread_cond_signal(&wstate.work_cond);
       args->isResp = true;
     } else {
       // actually perform the work. The response string is filled in by 'execute_work'
