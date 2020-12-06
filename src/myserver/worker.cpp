@@ -40,7 +40,7 @@ struct fours {
 };
 
 static struct Worker_state {
-  const static int max_num_tasks = 39;///num_of_thread-1
+  const static int max_num_tasks = 19;//39;///num_of_thread-1
   ///multi-threads
   WorkQueue<Request_msg> block_queue_tasks;
   pthread_t thread_pool[max_num_tasks];
@@ -100,7 +100,7 @@ void* request_handle(void* thread_arg) {
         args->isResp = false;
       }
     } else if (req.get_arg("cmd").compare("projectidea") == 0) {
-      // ///only one projectidea in the same time
+      ///only one projectidea in the same time
       if (wstate.projectidea) {
         wstate.projectidea_tasks.push(req);
         continue;
@@ -111,12 +111,12 @@ void* request_handle(void* thread_arg) {
       //   pthread_mutex_unlock(&wstate.work_lock);
       // }
       // ///lock the worker for monopolize all L3-cache
-      pthread_mutex_lock(&wstate.work_lock);
+      // pthread_mutex_lock(&wstate.work_lock);
       wstate.projectidea = true;
       execute_work(req, resp);
       wstate.projectidea = false;
       // pthread_cond_signal(&wstate.work_cond);///pthread_cond_broadcast(&wstate.work_cond);
-      pthread_mutex_unlock(&wstate.work_lock);
+      // pthread_mutex_unlock(&wstate.work_lock);
       args->isResp = true;
     } else {
       // actually perform the work. The response string is filled in by 'execute_work'
