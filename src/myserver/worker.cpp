@@ -67,10 +67,10 @@ void* request_handle(void* thread_arg) {
     Response_msg resp(req.get_tag());
 
     while (wstate.projectidea) {
-      pthread_mutex_lock(&wstate.work_lock);
+      // pthread_mutex_lock(&wstate.work_lock);
       pthread_cond_wait(&wstate.work_cond, &wstate.work_lock);
-      pthread_mutex_unlock(&wstate.work_lock);
-      pthread_cond_signal(&wstate.work_cond);
+      // pthread_mutex_unlock(&wstate.work_lock);
+      // pthread_cond_signal(&wstate.work_cond);
     }
 
     double startTime = CycleTimer::currentSeconds();
