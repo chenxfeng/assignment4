@@ -59,19 +59,19 @@ void* request_handle(void* thread_arg) {
   Request_msg req;
 
   while (true) {
+    while (wstate.projectidea) {
+      pthread_mutex_lock(&wstate.work_lock);
+      pthread_cond_wait(&wstate.work_cond, &wstate.work_lock);
+      pthread_mutex_unlock(&wstate.work_lock);
+      pthread_cond_signal(&wstate.work_cond);
+    }
+
     ///try to get a req from the block-queue; block untill it's not empty
     ///and measures are taken for threads-safety
     req = wstate.block_queue_tasks.get_work();
     // Make the tag of the reponse match the tag of the request.  This
     // is a way for your master to match worker responses to requests.
     Response_msg resp(req.get_tag());
-
-    while (wstate.projectidea) {
-      // pthread_mutex_lock(&wstate.work_lock);
-      pthread_cond_wait(&wstate.work_cond, &wstate.work_lock);
-      // pthread_mutex_unlock(&wstate.work_lock);
-      // pthread_cond_signal(&wstate.work_cond);
-    }
 
     double startTime = CycleTimer::currentSeconds();
     if (req.get_arg("cmd").compare("compareprimes") == 0) {
