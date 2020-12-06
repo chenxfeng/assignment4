@@ -148,7 +148,7 @@ void worker_handle_request(const Request_msg& req) {
 
   if (req.get_arg("cmd") == "compareprimes") {
     ///divide to four independent task
-    Request_msg dummy_req(0);
+    Request_msg dummy_req(req.get_tag());
     // grab the four arguments defining the two ranges
     create_computeprimes_req(dummy_req, req.get_arg("n1").c_str(), "1");
     wstate.block_queue_tasks.put_work(dummy_req);
