@@ -40,7 +40,7 @@ struct fours {
 };
 
 static struct Worker_state {
-  const static int max_num_tasks = 30;//39;///num_of_thread-1
+  const static int max_num_tasks = 39;//39;///num_of_thread-1
   ///multi-threads
   WorkQueue<Request_msg> block_queue_tasks;
   pthread_t thread_pool[max_num_tasks];
