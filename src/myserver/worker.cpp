@@ -49,7 +49,7 @@ static struct Worker_state {
   std::map<int, fours> primes;
   ///lock for dominant cache : projectidea
   int projectidea;
-  const static int max_projectidea = 2;
+  const static int max_projectidea = 1;
   pthread_mutex_t work_lock;
   pthread_cond_t work_cond;
   std::queue<Request_msg> projectidea_tasks;
