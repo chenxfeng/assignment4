@@ -48,8 +48,7 @@ void master_node_init(int max_workers, int& tick_period) {
   mstate.next_tag = 0;
   mstate.max_num_workers = max_workers;
   mstate.num_pending_client_requests = 0;
-  mstate.round = 0;
-  mstate.random = 0;
+  mstate.next_worker = 0;
 
   // don't mark the server as ready until the server is ready to go.
   // This is actually when the first worker is up and running, not
