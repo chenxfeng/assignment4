@@ -20,16 +20,24 @@ static struct Master_state {
   int max_num_workers;
   int num_pending_client_requests;
   int next_tag;
-  ///multi workers
-  std::vector<Worker_handle> my_worker;
-  // std::map<int, int> working_worker;///tag2worker
-  int round;///round robin
   ///handle multiple pending client requests
   std::map<int, Client_handle> waiting_client;///tag2client
+  ///multi workers
+  std::vector<Worker_handle> my_worker;
+  ///load balance
+  int next_worker;
 
 } mstate;
 
-
+void update_next_worker(const char* manner = "random") {
+  if (manner == "round robin") {
+    ///round-robin's manner
+    mstate.next_worker = (mstate.next_worker + 1) % mstate.my_worker.size();
+  } else if (manner == "random") {
+    ///random manner
+    mstate.next_worker = random() % mstate.my_worker.size();
+  }
+}
 
 void master_node_init(int max_workers, int& tick_period) {
 
@@ -41,6 +49,7 @@ void master_node_init(int max_workers, int& tick_period) {
   mstate.max_num_workers = max_workers;
   mstate.num_pending_client_requests = 0;
   mstate.round = 0;
+  mstate.random = 0;
 
   // don't mark the server as ready until the server is ready to go.
   // This is actually when the first worker is up and running, not
@@ -48,7 +57,6 @@ void master_node_init(int max_workers, int& tick_period) {
   mstate.server_ready = false;
 
   // fire off a request for a new worker
-
   for (int i = 0; i < mstate.max_num_workers; ++i) {
     int tag = random();
     Request_msg req(tag);
@@ -111,8 +119,8 @@ void handle_client_request(Client_handle client_handle, const Request_msg& clien
   // called to forward the worker's response back to the server.
   int tag = mstate.next_tag++;
   Request_msg worker_req(tag, client_req);
-  send_request_to_worker(mstate.my_worker[mstate.round], worker_req);
-  mstate.round = (mstate.round + 1) % mstate.my_worker.size();///round-robin's manner
+  send_request_to_worker(mstate.my_worker[mstate.next_worker], worker_req);
+  update_next_worker();
 
   // Save off the handle to the client that is expecting a response.
   // The master needs to do this it can response to this client later
