@@ -8,6 +8,7 @@
 #include <map>
 #include <vector>
 #include <sstream>
+#include <set>
 
 static struct Master_state {
 
@@ -24,18 +25,26 @@ static struct Master_state {
   std::map<int, Client_handle> waiting_client;///tag2client
   ///multi workers
   std::vector<Worker_handle> my_worker;
+  std::map<Worker_handle, int> worker_num;
   ///load balance
   int next_worker;
+  ///load info
+  std::map<Worker_handle, int> workers_load;
+  std::set<std::pair<int, Worker_handle>> sorted_worker;
 
 } mstate;
 
-void update_next_worker(const char* manner = "random") {
+void update_next_worker(const char* manner = "least connection") {
   if (manner == "round robin") {
     ///round-robin's manner
     mstate.next_worker = (mstate.next_worker + 1) % mstate.my_worker.size();
   } else if (manner == "random") {
     ///random manner
     mstate.next_worker = random() % mstate.my_worker.size();
+  } else if (manner == "least connection") {
+    ///Least Connections
+    auto it = mstate.sorted_worker.begin();
+    mstate.next_worker = mstate.worker_num[it->second];
   }
 }
 
@@ -64,7 +73,6 @@ void master_node_init(int max_workers, int& tick_period) {
     req.set_arg("name", oss.str());
     request_new_worker_node(req);
   }
-
 }
 
 void handle_new_worker_online(Worker_handle worker_handle, int tag) {
@@ -72,8 +80,11 @@ void handle_new_worker_online(Worker_handle worker_handle, int tag) {
   // 'tag' allows you to identify which worker request this response
   // corresponds to.  Since the starter code only sends off one new
   // worker request, we don't use it here.
-  printf("worker: %d\n", mstate.my_worker.size());
+  printf("start worker-%d\n", mstate.my_worker.size());
   mstate.my_worker.push_back(worker_handle);
+  mstate.worker_num[worker_handle] = mstate.my_worker.size() - 1;
+  mstate.sorted_worker.insert(std::make_pair<int, Worker_handle>(0, worker_handle));
+  mstate.workers_load[worker_handle] = 0;
 
   // Now that a worker is booted, let the system know the server is
   // ready to begin handling client requests.  The test harness will
@@ -85,6 +96,13 @@ void handle_new_worker_online(Worker_handle worker_handle, int tag) {
 }
 
 void handle_worker_response(Worker_handle worker_handle, const Response_msg& resp) {
+
+  mstate.sorted_worker.erase(
+    mstate.sorted_worker.find(std::make_pair<int, Worker_handle>(
+    mstate.workers_load[worker_handle], worker_handle)));
+  mstate.workers_load[worker_handle] --;
+  mstate.sorted_worker.insert(std::make_pair<int, Worker_handle>(
+    mstate.workers_load[worker_handle], worker_handle));
 
   // Master node has received a response from one of its workers.
   // Here we directly return this response to the client.
@@ -119,6 +137,14 @@ void handle_client_request(Client_handle client_handle, const Request_msg& clien
   int tag = mstate.next_tag++;
   Request_msg worker_req(tag, client_req);
   send_request_to_worker(mstate.my_worker[mstate.next_worker], worker_req);
+  ///update load info
+  mstate.sorted_worker.erase(
+    mstate.sorted_worker.find(std::make_pair<int, Worker_handle>(
+    mstate.workers_load[worker_handle], worker_handle)));
+  mstate.workers_load[worker_handle] ++;
+  mstate.sorted_worker.insert(std::make_pair<int, Worker_handle>(
+    mstate.workers_load[worker_handle], worker_handle));
+  ///update next_worker
   update_next_worker();
 
   // Save off the handle to the client that is expecting a response.
