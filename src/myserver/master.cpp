@@ -6,6 +6,8 @@
 #include "server/master.h"
 
 #include <map>
+#include <vector>
+#include <sstream>
 
 static struct Master_state {
 
@@ -18,8 +20,10 @@ static struct Master_state {
   int max_num_workers;
   int num_pending_client_requests;
   int next_tag;
-
-  Worker_handle my_worker;
+  ///multi workers
+  std::vector<Worker_handle> my_worker;
+  // std::map<int, int> working_worker;///tag2worker
+  int round;///round robin
   ///handle multiple pending client requests
   std::map<int, Client_handle> waiting_client;///tag2client
 
@@ -36,6 +40,7 @@ void master_node_init(int max_workers, int& tick_period) {
   mstate.next_tag = 0;
   mstate.max_num_workers = max_workers;
   mstate.num_pending_client_requests = 0;
+  mstate.round = 0;
 
   // don't mark the server as ready until the server is ready to go.
   // This is actually when the first worker is up and running, not
@@ -44,10 +49,14 @@ void master_node_init(int max_workers, int& tick_period) {
 
   // fire off a request for a new worker
 
-  int tag = random();
-  Request_msg req(tag);
-  req.set_arg("name", "my worker 0");
-  request_new_worker_node(req);
+  for (int i = 0; i < mstate.max_num_workers; ++i) {
+    int tag = random();
+    Request_msg req(tag);
+    std::ostringstream oss;
+    oss << "my worker " << i;
+    req.set_arg("name", oss.str());
+    request_new_worker_node(req);
+  }
 
 }
 
@@ -56,8 +65,8 @@ void handle_new_worker_online(Worker_handle worker_handle, int tag) {
   // 'tag' allows you to identify which worker request this response
   // corresponds to.  Since the starter code only sends off one new
   // worker request, we don't use it here.
-
-  mstate.my_worker = worker_handle;
+  printf("worker: %d\n", mstate.my_worker.size());
+  mstate.my_worker.push_back(worker_handle);
 
   // Now that a worker is booted, let the system know the server is
   // ready to begin handling client requests.  The test harness will
@@ -102,7 +111,8 @@ void handle_client_request(Client_handle client_handle, const Request_msg& clien
   // called to forward the worker's response back to the server.
   int tag = mstate.next_tag++;
   Request_msg worker_req(tag, client_req);
-  send_request_to_worker(mstate.my_worker, worker_req);
+  send_request_to_worker(mstate.my_worker[mstate.round], worker_req);
+  mstate.round = (mstate.round + 1) % mstate.my_worker.size();///round-robin's manner
 
   // Save off the handle to the client that is expecting a response.
   // The master needs to do this it can response to this client later
