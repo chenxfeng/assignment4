@@ -72,7 +72,7 @@ void master_node_init(int max_workers, int& tick_period) {
   mstate.server_ready = false;
 
   // fire off a request for a new worker
-  mstate.start_num_workers = mstate.max_num_workers - 1;//1;
+  mstate.start_num_workers = mstate.max_num_workers - 2;//1;
   for (int i = 0; i < mstate.start_num_workers; ++i) {
     int tag = random();
     Request_msg req(tag);
@@ -82,7 +82,7 @@ void master_node_init(int max_workers, int& tick_period) {
     request_new_worker_node(req);
   }
   ///initialize elasticity-argus
-  mstate.threshold = 5;//10;
+  mstate.threshold = 10;
   mstate.start_worker_req = 0;
 }
 
