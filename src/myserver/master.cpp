@@ -32,6 +32,8 @@ static struct Master_state {
   ///load info
   std::map<Worker_handle, int> workers_load;
   std::set<std::pair<int, int> > sorted_worker;
+  ///Elasticity
+  int threshold;
 
 } mstate;
 
@@ -42,7 +44,7 @@ void update_next_worker(const char* manner = "least connection") {
   } else if (manner == "random") {
     ///random manner
     mstate.next_worker = random() % mstate.my_worker.size();
-  } else if (manner == "least connection") {
+  } else if (manner == "least connection") { printf("test\n");
     ///Least Connections
     auto it = mstate.sorted_worker.begin();
     mstate.next_worker = it->second;
@@ -68,6 +70,7 @@ void master_node_init(int max_workers, int& tick_period) {
 
   // fire off a request for a new worker
   mstate.start_num_workers = 1;
+  mstate.threshold = 10;
   for (int i = 0; i < mstate.start_num_workers; ++i) {
     int tag = random();
     Request_msg req(tag);
@@ -169,6 +172,14 @@ void handle_tick() {
   // TODO: you may wish to take action here.  This method is called at
   // fixed time intervals, according to how you set 'tick_period' in
   // 'master_node_init'.
-
+  ///start new worker when the least load succeed a threshold
+  if (mstate.sorted_worker.begin()->first > mstate.threshold) {
+    int tag = random();
+    Request_msg req(tag);
+    std::ostringstream oss;
+    oss << "my worker " << mstate.my_worker.size();
+    req.set_arg("name", oss.str());
+    request_new_worker_node(req);
+  }
 }
 
