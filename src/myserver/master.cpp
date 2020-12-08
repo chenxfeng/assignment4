@@ -35,6 +35,8 @@ static struct Master_state {
   ///Elasticity
   int threshold;
   int start_worker_req;
+  int low_bound;
+  bool end_worker_req;
 
 } mstate;
 
@@ -53,6 +55,9 @@ void update_next_worker(const char* manner = "least connection") {
     mstate.next_worker = it->second;
   }
   ///and more...
+  ///last worker will be killed
+  if (mstate.end_worker_req && mstate.next_worker == mstate.my_worker.size() - 1)
+    mstate.next_worker --;
 }
 
 void master_node_init(int max_workers, int& tick_period) {
@@ -82,8 +87,10 @@ void master_node_init(int max_workers, int& tick_period) {
     request_new_worker_node(req);
   }
   ///initialize elasticity-argus
-  mstate.threshold = 10;
+  mstate.threshold = 7;
   mstate.start_worker_req = 0;
+  mstate.low_bound = 2;
+  mstate.end_worker_req = false;
 }
 
 void handle_new_worker_online(Worker_handle worker_handle, int tag) {
@@ -193,6 +200,21 @@ void handle_tick() {
     oss << "my worker " << mstate.my_worker.size();
     req.set_arg("name", oss.str()); 
     request_new_worker_node(req);
+  }
+  if (mstate.end_worker_req && mstate.workers_load[mstate.my_worker.back()] == 0) {
+    kill_worker_node(mstate.my_worker.back());
+    mstate.sorted_worker.erase(mstate.sorted_worker.find(
+      std::pair<int, int>(mstate.workers_load[mstate.my_worker.back()], 
+      mstate.worker_num[mstate.my_worker.back()])));
+    mstate.workers_load.erase(mstate.workers_load.find(mstate.my_worker.back()));
+    mstate.worker_num.erase(mstate.worker_num.find(mstate.my_worker.back()));
+    mstate.my_worker.pop_back();
+    mstate.end_worker_req = false;
+  }
+  auto it = mstate.sorted_worker.end();
+  --it;
+  if (it->first <= mstate.low_bound && mstate.my_worker.size() > 1) {
+    mstate.end_worker_req = true;
   }
 }
 
