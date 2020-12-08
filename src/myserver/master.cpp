@@ -37,14 +37,14 @@ static struct Master_state {
 
 } mstate;
 
-void update_next_worker(const char* manner = "least connection") {
+void update_next_worker(char* manner = "least connection") {
   if (manner == "round robin") {
     ///round-robin's manner
     mstate.next_worker = (mstate.next_worker + 1) % mstate.my_worker.size();
   } else if (manner == "random") {
     ///random manner
     mstate.next_worker = random() % mstate.my_worker.size();
-  } else if (manner == "least connection") { printf("test\n");
+  } else if (manner == "least connection") {
     ///Least Connections
     auto it = mstate.sorted_worker.begin();
     mstate.next_worker = it->second;
@@ -173,7 +173,8 @@ void handle_tick() {
   // fixed time intervals, according to how you set 'tick_period' in
   // 'master_node_init'.
   ///start new worker when the least load succeed a threshold
-  if (mstate.sorted_worker.begin()->first > mstate.threshold) {
+  if (mstate.sorted_worker.begin()->first > mstate.threshold && 
+    mstate.my_worker.size() < mstate.max_num_workers) {
     int tag = random();
     Request_msg req(tag);
     std::ostringstream oss;
