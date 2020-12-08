@@ -34,6 +34,7 @@ static struct Master_state {
   std::set<std::pair<int, int> > sorted_worker;
   ///Elasticity
   int threshold;
+  int start_worker_req;
 
 } mstate;
 
@@ -72,7 +73,6 @@ void master_node_init(int max_workers, int& tick_period) {
 
   // fire off a request for a new worker
   mstate.start_num_workers = 1;
-  mstate.threshold = 10;
   for (int i = 0; i < mstate.start_num_workers; ++i) {
     int tag = random();
     Request_msg req(tag);
@@ -81,6 +81,9 @@ void master_node_init(int max_workers, int& tick_period) {
     req.set_arg("name", oss.str());
     request_new_worker_node(req);
   }
+  ///initialize elasticity-argus
+  mstate.threshold = 10;
+  mstate.start_worker_req = 0;
 }
 
 void handle_new_worker_online(Worker_handle worker_handle, int tag) {
@@ -101,6 +104,8 @@ void handle_new_worker_online(Worker_handle worker_handle, int tag) {
     server_init_complete();
     mstate.server_ready = true;
   }
+  ///elasticity: a start-worker req done
+  mstate.start_worker_req --;
 }
 
 void handle_worker_response(Worker_handle worker_handle, const Response_msg& resp) {
@@ -165,7 +170,6 @@ void handle_client_request(Client_handle client_handle, const Request_msg& clien
   // We're done!  This event handler now returns, and the master
   // process calls another one of your handlers when action is
   // required.
-
 }
 
 
@@ -176,7 +180,7 @@ void handle_tick() {
   // 'master_node_init'.
   ///start new worker when the least load succeed a threshold
   if (mstate.sorted_worker.begin()->first > mstate.threshold && 
-    mstate.my_worker.size() < mstate.max_num_workers) {
+    mstate.my_worker.size() + mstate.start_worker_req < mstate.max_num_workers) {
     int tag = random();
     Request_msg req(tag);
     std::ostringstream oss;
@@ -184,6 +188,9 @@ void handle_tick() {
     req.set_arg("name", oss.str()); 
 printf("%d-th worker; least load: %d\n", mstate.my_worker.size(), mstate.sorted_worker.begin()->first);
     request_new_worker_node(req);
+
+    ///elasticity: a start-worker req
+    mstate.start_worker_req ++;
   }
 }
 
