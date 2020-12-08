@@ -72,7 +72,7 @@ void master_node_init(int max_workers, int& tick_period) {
   mstate.server_ready = false;
 
   // fire off a request for a new worker
-  mstate.start_num_workers = 1;
+  mstate.start_num_workers = mstate.max_num_workers - 1;//1;
   for (int i = 0; i < mstate.start_num_workers; ++i) {
     int tag = random();
     Request_msg req(tag);
@@ -179,8 +179,8 @@ void handle_tick() {
   // fixed time intervals, according to how you set 'tick_period' in
   // 'master_node_init'.
   ///start new worker when the least load succeed a threshold
-  if (mstate.sorted_worker.begin()->first > mstate.threshold /*&& 
-    mstate.my_worker.size() + mstate.start_worker_req < mstate.max_num_workers*/) {
+  if (mstate.sorted_worker.begin()->first > mstate.threshold && 
+    mstate.my_worker.size() + mstate.start_worker_req < mstate.max_num_workers) {
     printf("start %d-th worker when least load is %d\n", 
       mstate.my_worker.size()+mstate.start_worker_req+1, mstate.sorted_worker.begin()->first);
 
