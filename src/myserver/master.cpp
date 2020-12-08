@@ -30,7 +30,7 @@ static struct Master_state {
   int next_worker;
   ///load info
   std::map<Worker_handle, int> workers_load;
-  std::set<std::pair<int, int>> sorted_worker;
+  std::set<std::pair<int, int> > sorted_worker;
 
 } mstate;
 
@@ -83,7 +83,7 @@ void handle_new_worker_online(Worker_handle worker_handle, int tag) {
   printf("start worker-%d\n", mstate.my_worker.size());
   mstate.my_worker.push_back(worker_handle);
   mstate.worker_num[worker_handle] = mstate.my_worker.size() - 1;
-  mstate.sorted_worker.insert(std::make_pair<int, int>(0, mstate.worker_num[worker_handle]));
+  mstate.sorted_worker.insert(std::pair<int, int>(0, mstate.worker_num[worker_handle]));
   mstate.workers_load[worker_handle] = 0;
 
   // Now that a worker is booted, let the system know the server is
@@ -98,10 +98,10 @@ void handle_new_worker_online(Worker_handle worker_handle, int tag) {
 void handle_worker_response(Worker_handle worker_handle, const Response_msg& resp) {
 
   mstate.sorted_worker.erase(
-    mstate.sorted_worker.find(std::make_pair<int, int>(
+    mstate.sorted_worker.find(std::pair<int, int>(
     mstate.workers_load[worker_handle], mstate.worker_num[worker_handle])));
   mstate.workers_load[worker_handle] --;
-  mstate.sorted_worker.insert(std::make_pair<int, int>(
+  mstate.sorted_worker.insert(std::pair<int, int>(
     mstate.workers_load[worker_handle], mstate.worker_num[worker_handle]));
 
   // Master node has received a response from one of its workers.
@@ -138,11 +138,12 @@ void handle_client_request(Client_handle client_handle, const Request_msg& clien
   Request_msg worker_req(tag, client_req);
   send_request_to_worker(mstate.my_worker[mstate.next_worker], worker_req);
   ///update load info
+  Worker_handle& worker_handle = mstate.my_worker[mstate.next_worker];
   mstate.sorted_worker.erase(
-    mstate.sorted_worker.find(std::make_pair<int, int>(
+    mstate.sorted_worker.find(std::pair<int, int>(
     mstate.workers_load[worker_handle], mstate.worker_num[worker_handle])));
   mstate.workers_load[worker_handle] ++;
-  mstate.sorted_worker.insert(std::make_pair<int, int>(
+  mstate.sorted_worker.insert(std::pair<int, int>(
     mstate.workers_load[worker_handle], mstate.worker_num[worker_handle]));
   ///update next_worker
   update_next_worker();
