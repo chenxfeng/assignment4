@@ -82,7 +82,7 @@ void master_node_init(int max_workers, int& tick_period) {
     request_new_worker_node(req);
   }
   ///initialize elasticity-argus
-  mstate.threshold = 10;
+  mstate.threshold = 5;//10;
   mstate.start_worker_req = 0;
 }
 
@@ -105,7 +105,8 @@ void handle_new_worker_online(Worker_handle worker_handle, int tag) {
     mstate.server_ready = true;
   }
   ///elasticity: a start-worker req done
-  mstate.start_worker_req --;
+  if (mstate.start_worker_req > 0)
+    mstate.start_worker_req --;
 }
 
 void handle_worker_response(Worker_handle worker_handle, const Response_msg& resp) {
@@ -181,8 +182,10 @@ void handle_tick() {
   ///start new worker when the least load succeed a threshold
   if (mstate.sorted_worker.begin()->first > mstate.threshold && 
     mstate.my_worker.size() + mstate.start_worker_req < mstate.max_num_workers) {
+    ///elasticity: a start-worker req
+    mstate.start_worker_req ++;
     printf("start %d-th worker when least load is %d\n", 
-      mstate.my_worker.size()+mstate.start_worker_req+1, mstate.sorted_worker.begin()->first);
+      mstate.my_worker.size()+mstate.start_worker_req, mstate.sorted_worker.begin()->first);
 
     int tag = random();
     Request_msg req(tag);
@@ -190,9 +193,6 @@ void handle_tick() {
     oss << "my worker " << mstate.my_worker.size();
     req.set_arg("name", oss.str()); 
     request_new_worker_node(req);
-
-    ///elasticity: a start-worker req
-    mstate.start_worker_req ++;
   }
 }
 
