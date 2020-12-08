@@ -46,7 +46,7 @@ void update_next_worker(const char* manner = "least connection") {
   } else if (strcmp(manner, "random") == 0) {
     ///random manner
     mstate.next_worker = random() % mstate.my_worker.size();
-  } else if (strcmp(manner, "least connection") == 0) { printf("test\n");
+  } else if (strcmp(manner, "least connection") == 0) {
     ///Least Connections
     auto it = mstate.sorted_worker.begin();
     mstate.next_worker = it->second;
@@ -58,7 +58,7 @@ void master_node_init(int max_workers, int& tick_period) {
 
   // set up tick handler to fire every 5 seconds. (feel free to
   // configure as you please)
-  tick_period = 5;
+  tick_period = 1;//5;
 
   mstate.next_tag = 0;
   mstate.max_num_workers = max_workers;
@@ -88,7 +88,7 @@ void handle_new_worker_online(Worker_handle worker_handle, int tag) {
   // 'tag' allows you to identify which worker request this response
   // corresponds to.  Since the starter code only sends off one new
   // worker request, we don't use it here.
-  printf("start worker-%u\n", mstate.my_worker.size());
+  printf("start worker-%lu\n", mstate.my_worker.size());
   mstate.my_worker.push_back(worker_handle);
   mstate.worker_num[worker_handle] = mstate.my_worker.size() - 1;
   mstate.sorted_worker.insert(std::pair<int, int>(0, mstate.worker_num[worker_handle]));
