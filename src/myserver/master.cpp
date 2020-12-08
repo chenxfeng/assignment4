@@ -181,7 +181,8 @@ void handle_tick() {
     Request_msg req(tag);
     std::ostringstream oss;
     oss << "my worker " << mstate.my_worker.size();
-    req.set_arg("name", oss.str());
+    req.set_arg("name", oss.str()); 
+printf("%d-th worker; least load: %d\n", mstate.my_worker.size(), mstate.sorted_worker.begin()->first);
     request_new_worker_node(req);
   }
 }
