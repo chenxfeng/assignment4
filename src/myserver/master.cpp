@@ -24,6 +24,7 @@ static struct Master_state {
   ///handle multiple pending client requests
   std::map<int, Client_handle> waiting_client;///tag2client
   ///multi workers
+  int start_num_workers;
   std::vector<Worker_handle> my_worker;
   std::map<Worker_handle, int> worker_num;
   ///load balance
@@ -46,6 +47,7 @@ void update_next_worker(const char* manner = "least connection") {
     auto it = mstate.sorted_worker.begin();
     mstate.next_worker = it->second;
   }
+  ///and more...
 }
 
 void master_node_init(int max_workers, int& tick_period) {
@@ -65,7 +67,8 @@ void master_node_init(int max_workers, int& tick_period) {
   mstate.server_ready = false;
 
   // fire off a request for a new worker
-  for (int i = 0; i < mstate.max_num_workers; ++i) {
+  mstate.start_num_workers = 1;
+  for (int i = 0; i < mstate.start_num_workers; ++i) {
     int tag = random();
     Request_msg req(tag);
     std::ostringstream oss;
