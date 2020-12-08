@@ -179,14 +179,16 @@ void handle_tick() {
   // fixed time intervals, according to how you set 'tick_period' in
   // 'master_node_init'.
   ///start new worker when the least load succeed a threshold
-  if (mstate.sorted_worker.begin()->first > mstate.threshold && 
-    mstate.my_worker.size() + mstate.start_worker_req < mstate.max_num_workers) {
+  if (mstate.sorted_worker.begin()->first > mstate.threshold /*&& 
+    mstate.my_worker.size() + mstate.start_worker_req < mstate.max_num_workers*/) {
+    printf("start %d-th worker when least load is %d\n", 
+      mstate.my_worker.size()+mstate.start_worker_req+1, mstate.sorted_worker.begin()->first);
+
     int tag = random();
     Request_msg req(tag);
     std::ostringstream oss;
     oss << "my worker " << mstate.my_worker.size();
     req.set_arg("name", oss.str()); 
-printf("%d-th worker; least load: %d\n", mstate.my_worker.size(), mstate.sorted_worker.begin()->first);
     request_new_worker_node(req);
 
     ///elasticity: a start-worker req
