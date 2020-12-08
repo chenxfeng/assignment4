@@ -37,14 +37,16 @@ static struct Master_state {
 
 } mstate;
 
-void update_next_worker(char* manner = "least connection") {
-  if (manner == "round robin") {
+void update_next_worker(const char* manner = "least connection") {
+  ///in C++, using ``==`` to compare two string is valid, but
+  ///comparison with string literal results in unspecified behaviour in C 
+  if (strcmp(manner, "round robin") == 0) {
     ///round-robin's manner
     mstate.next_worker = (mstate.next_worker + 1) % mstate.my_worker.size();
-  } else if (manner == "random") {
+  } else if (strcmp(manner, "random") == 0) {
     ///random manner
     mstate.next_worker = random() % mstate.my_worker.size();
-  } else if (manner == "least connection") {
+  } else if (strcmp(manner, "least connection") == 0) { printf("test\n");
     ///Least Connections
     auto it = mstate.sorted_worker.begin();
     mstate.next_worker = it->second;
@@ -86,7 +88,7 @@ void handle_new_worker_online(Worker_handle worker_handle, int tag) {
   // 'tag' allows you to identify which worker request this response
   // corresponds to.  Since the starter code only sends off one new
   // worker request, we don't use it here.
-  printf("start worker-%d\n", mstate.my_worker.size());
+  printf("start worker-%u\n", mstate.my_worker.size());
   mstate.my_worker.push_back(worker_handle);
   mstate.worker_num[worker_handle] = mstate.my_worker.size() - 1;
   mstate.sorted_worker.insert(std::pair<int, int>(0, mstate.worker_num[worker_handle]));
