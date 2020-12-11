@@ -211,10 +211,12 @@ void handle_tick() {
     mstate.my_worker.pop_back();
     mstate.end_worker_req = false;
   }
-  auto it = mstate.sorted_worker.end();
-  --it;
-  if (it->first <= mstate.low_bound && mstate.my_worker.size() > 1) {
-    mstate.end_worker_req = true;
+  if (!mstate.end_worker_req && mstate.sorted_worker.size()) {
+    auto it = mstate.sorted_worker.end();
+    --it;
+    if (it->first <= mstate.low_bound && mstate.my_worker.size() > 1) {
+      mstate.end_worker_req = true;
+    }
   }
 }
 
